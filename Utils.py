@@ -1,7 +1,7 @@
 import traceback
 import logging
 import numpy as np
-import pyLARDA.helpers as h
+
 import re
 import subprocess
 import sys
@@ -13,7 +13,6 @@ import datetime
 import toml
 import xarray as xr
 from meteoSI import mod_ad
-from pyLARDA.Transformations import combine
 
 logger = logging.getLogger('libVoodoo')
 logger.setLevel(logging.CRITICAL)
@@ -142,6 +141,7 @@ def get_combined_mask(classes, indices, *status):
     return mask
 
 def correlation(X, Y, n_smooth=10):
+    import pyLARDA.helpers as h
 
     corr = ma_corr_coef(X, Y)
 
@@ -213,6 +213,7 @@ def write_ann_config_file(**kwargs):
     Returns:    0
 
     """
+    import pyLARDA.helpers as h
     path = kwargs['path'] if 'path' in kwargs else ''
     name = kwargs['name'] if 'name' in kwargs else 'no-name.cfg'
     if len(path) > 0: h.change_dir(path)
@@ -238,6 +239,7 @@ def read_ann_config_file(**kwargs):
     Returns:    0
 
     """
+    import pyLARDA.helpers as h
     path = kwargs['path'] if 'path' in kwargs else ''
     name = kwargs['name'] if 'name' in kwargs else 'no-name.cfg'
     if len(path) > 0: h.change_dir(path)
@@ -273,6 +275,7 @@ def make_html_overview(template_loc, case_study_info, png_names):
         """
 
 def get_explorer_link(campaign, time_interval, range_interval, params):
+    import pyLARDA.helpers as h
     s = "http://larda.tropos.de/larda3/explorer/{}?interval={}-{}%2C{}-{}&params={}".format(
         campaign, h.dt_to_ts(time_interval[0]), h.dt_to_ts(time_interval[1]),
         *range_interval, ",".join(params))
@@ -323,6 +326,8 @@ def container_from_prediction(ts, rg, var, mask, **kwargs):
 
 
 def get_isotherms(temperature, ts, rg, mask, **kwargs):
+    
+    from pyLARDA.Transformations import combine
     def toC(datalist):
         return datalist[0]['var'] - 273.15, datalist[0]['mask']
 
@@ -654,6 +659,7 @@ def target_class2bit_mask(target_labels):
 
 
 def load_dataset_from_zarr(case_string_list, case_list_path, **kwargs):
+    import pyLARDA.helpers as h
     N_NOT_AVAILABLE = 0
     features, labels, multilabels, mask = [], [], [], []
     class_, status, catbits, qualbits, insect_prob = [], [], [], [], []
@@ -902,6 +908,7 @@ def one_hot_to_spectra(features, mask):
 
 
 def random_choice(xr_ds, rg_int, N=4, iclass=4, var='voodoo_classification'):
+    import pyLARDA.helpers as h
     nts, nrg = xr_ds.ZSpec.ts.size, xr_ds.ZSpec.rg.size
 
     icnt = 0

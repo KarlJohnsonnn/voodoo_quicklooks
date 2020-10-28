@@ -2,8 +2,6 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
-import pyLARDA.helpers as h
-import pyLARDA.Transformations as tr
 
 
 _FIG_SIZE = (17, 6.7)
@@ -54,6 +52,9 @@ def load_cbar_style(cbar, cbar_label=''):
 
 
 def plot_range_spectrogram(ZSpec, dt, **font_settings):
+    
+    import pyLARDA.helpers as h
+    import pyLARDA.Transformations as tr
     unix_0 = np.float64(h.dt_to_ts(dt))
 
     Z = ZSpec.sel(ts = slice(unix_0, unix_0+30.0), rg = slice(font_settings['range_interval'][0], font_settings['range_interval'][1]))
@@ -84,6 +85,9 @@ def plot_range_spectrogram(ZSpec, dt, **font_settings):
     plt.tight_layout()
     
 def plot_time_spectrogram(ZSpec, rg, **font_settings):
+        
+    import pyLARDA.helpers as h
+    import pyLARDA.Transformations as tr
     rg0 = np.float64(rg)
 
     Z = ZSpec.sel(rg = slice(rg0, rg0+40.0), ts = slice(ZSpec.ts[0], ZSpec.ts[-1]))
