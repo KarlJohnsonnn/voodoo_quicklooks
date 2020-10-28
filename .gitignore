@@ -1,0 +1,15 @@
+# exlclude data
+data/*
+
+# include one file explicitely
+#!data/20190801-20190801-20201017-174440__20201017-174440_weights.h5.nc
+
+# exclude . stuff
+.ipynb_checkpoints*
+.DS_Store*
+__pycache__*
+
+# exclude pngs
+plots/*
+plots/**/*
+
