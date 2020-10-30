@@ -17,7 +17,6 @@ from meteoSI import mod_ad
 logger = logging.getLogger('libVoodoo')
 logger.setLevel(logging.CRITICAL)
 
-
 cloudnetpy_classes = [
     'Clear sky',
     'Cloud liquid droplets only',
@@ -84,10 +83,12 @@ def read_cmd_line_args(argv=None):
             args.append(value)
     return method_name, args, kwargs
 
+
 def run_command(cmd):
     """Run command, return output as string."""
     output = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).communicate()[0]
     return output.decode("ascii")
+
 
 def list_available_gpus():
     """Returns list of available GPU ids."""
@@ -100,6 +101,7 @@ def list_available_gpus():
         assert m, "Couldnt parse " + line
         result.append(int(m.group("gpu_id")))
     return result
+
 
 def gpu_memory_map():
     """Returns map of GPU id to memory allocated on that GPU."""
@@ -120,12 +122,14 @@ def gpu_memory_map():
         result[gpu_id] += gpu_memory
     return result
 
+
 def pick_gpu_lowest_memory():
     """Returns GPU with the least allocated memory"""
 
     memory_gpu_map = [(memory, gpu_id) for (gpu_id, memory) in gpu_memory_map().items()]
     best_memory, best_gpu = sorted(memory_gpu_map)[0]
     return best_gpu
+
 
 def get_nan_mask(arr):
     mask = np.full(arr.shape, False)
@@ -140,6 +144,7 @@ def get_combined_mask(classes, indices, *status):
     if len(status) > 0: mask[status[0] == 1] = False  # remove lidar echos only
     return mask
 
+
 def correlation(X, Y, n_smooth=10):
     import pyLARDA.helpers as h
 
@@ -149,6 +154,10 @@ def correlation(X, Y, n_smooth=10):
     Y_smoothed = h.smooth(Y, n_smooth)  # 10 bins = 5 min
     corr_smoothed = ma_corr_coef(X_smoothed, Y_smoothed)
     return corr, corr_smoothed
+
+
+def corr_(x, y):
+    return np.ma.corrcoef(np.ma.masked_less_equal(x, 0.0), np.ma.masked_less_equal(y, 0.0))[0, 1]
 
 
 def get_cloud_base_from_liquid_mask(liq_mask, rg):
@@ -170,6 +179,7 @@ def get_cloud_base_from_liquid_mask(liq_mask, rg):
         idx = np.argwhere(cbct_mask[iT, :] == -1)
         CB[iT] = rg[int(idx[0])] if len(idx) > 0 else 0.0
     return CB
+
 
 def find_bases_tops(mask, rg_list):
     """
@@ -198,6 +208,7 @@ def find_bases_tops(mask, rg_list):
                            })
     return cloud_prop, cloud_mask
 
+
 def write_ann_config_file(**kwargs):
     """
     Creates at folder and saves a matplotlib figure.
@@ -223,6 +234,7 @@ def write_ann_config_file(**kwargs):
         json.dump(kwargs, out, sort_keys=True, indent=4, ensure_ascii=False)
     print(f'Saved ann configure file :: {name}')
     return 0
+
 
 def read_ann_config_file(**kwargs):
     """
@@ -250,6 +262,7 @@ def read_ann_config_file(**kwargs):
     print(f'Loaded ann configure file :: {name}')
     return data
 
+
 def make_html_overview(template_loc, case_study_info, png_names):
     print('case_config', case_study_info)
     print('savenames', png_names.keys())
@@ -265,7 +278,6 @@ def make_html_overview(template_loc, case_study_info, png_names):
                 )
             )
 
-
         """
         <!--
         {% for key, value in data.items() %}
@@ -274,12 +286,14 @@ def make_html_overview(template_loc, case_study_info, png_names):
         -->
         """
 
+
 def get_explorer_link(campaign, time_interval, range_interval, params):
     import pyLARDA.helpers as h
     s = "http://larda.tropos.de/larda3/explorer/{}?interval={}-{}%2C{}-{}&params={}".format(
         campaign, h.dt_to_ts(time_interval[0]), h.dt_to_ts(time_interval[1]),
         *range_interval, ",".join(params))
     return s
+
 
 def traceback_error(time_span):
     exc_type, exc_value, exc_tb = sys.exc_info()
@@ -326,7 +340,6 @@ def container_from_prediction(ts, rg, var, mask, **kwargs):
 
 
 def get_isotherms(temperature, ts, rg, mask, **kwargs):
-    
     from pyLARDA.Transformations import combine
     def toC(datalist):
         return datalist[0]['var'] - 273.15, datalist[0]['mask']
@@ -370,13 +383,12 @@ def variable_to_container(var, ts, rg, mask, **kwargs):
 
 
 def post_processor_temperature(data, temperature, **kwargs):
-
     data_out = np.copy(data)
 
     if 'melting' in kwargs:
         melting_temp = 0.0  # °C
-        #idx_Tplus_ice = (temperature > melting_temp) * (data_out == 4)
-        #data_out[idx_Tplus_ice] = 2
+        # idx_Tplus_ice = (temperature > melting_temp) * (data_out == 4)
+        # data_out[idx_Tplus_ice] = 2
 
         idx_Tplus_mixed = (temperature > melting_temp) * (data_out == 5)
         data_out[idx_Tplus_mixed] = 3  # set to drizzle/rain & cloud droplets
@@ -416,7 +428,6 @@ def get_good_lidar_only_index(version):
 
 
 def post_processor_cloudnet_quality_flag(data, cloudnet_status, cloudnet_class, cloudnet_type=''):
-
     data_out = np.copy(data)
     GoodRadarLidar = cloudnet_status == get_good_radar_and_lidar_index(cloudnet_type)
     GoodLidarOnly = cloudnet_status == get_good_lidar_only_index(cloudnet_type)
@@ -523,7 +534,7 @@ def postprocessor(xr_ds):
     postprocessed.values = post_processor_cloudnet_quality_flag(
         postprocessed.values, xr_ds.detection_status.values, xr_ds.target_classification.values,
         cloudnet_type='CLOUDNETpy94',
-        #cloudnet_type = self.CLOUDNET
+        # cloudnet_type = self.CLOUDNET
     )
     postprocessed.values = post_processor_cloudnet_classes(
         postprocessed.values, xr_ds.target_classification.values
@@ -541,6 +552,7 @@ def postprocessor(xr_ds):
     postprocessed.attrs['system'] = 'Voodoo'
 
     return postprocessed
+
 
 def sum_liquid_layer_thickness(liquid_pixel_mask, rg_res=30.0):
     """Calculating the liquid layer thickness of the total vertical column"""
@@ -590,8 +602,8 @@ def load_training_mask(classes, status, cloudnet_type):
     valid_samples = np.full(status.shape, False)
     valid_samples[status == idx_good_radar_and_lidar] = True  # add good radar radar & lidar
     valid_samples[classes == 5] = True  # add mixed-phase class pixel
-    #valid_samples[classes == 6] = True  # add melting layer class pixel
-    #valid_samples[classes == 7] = True  # add melting layer + SCL class pixel
+    # valid_samples[classes == 6] = True  # add melting layer class pixel
+    # valid_samples[classes == 7] = True  # add melting layer + SCL class pixel
     valid_samples[classes == 1] = True  # add cloud droplets only class
 
     # at last, remove lidar only pixel caused by adding cloud droplets only class
@@ -611,19 +623,20 @@ def load_case_list(path, case_name):
     config_case_studies = toml.load(path)
     return config_case_studies['case'][case_name]
 
+
 def log_number_of_classes(classes, text=''):
     # numer of samples per class afer removing ice
     class_n_distribution = np.zeros(len(cloudnetpy_classes))
     logger.critical(text)
-    logger.critical(f'{classes.shape[0]*classes.shape[1]:12d}   total')
+    logger.critical(f'{classes.shape[0] * classes.shape[1]:12d}   total')
     for i in range(len(cloudnetpy_classes)):
         n = np.sum(classes == i)
         logger.critical(f'{n:12d}   {cloudnetpy_classes[i]}')
         class_n_distribution[i] = n
     return class_n_distribution
 
-def target_class2bit_mask(target_labels):
 
+def target_class2bit_mask(target_labels):
     #
     #     clutter = categorize_bits.quality_bits['clutter']
     #     classification = np.zeros(bits['cold'].shape, dtype=int)
@@ -638,7 +651,6 @@ def target_class2bit_mask(target_labels):
     #     classification[bits['insect'] & ~clutter] = 9
     #     classification[bits['aerosol'] & bits['insect'] & ~clutter] = 10
     #     classification[clutter & ~bits['aerosol']] = 0
-
 
     #     bit_mask: droplet(0) / falling(1) / cold(2) / melting(3) / insect(4)
 
@@ -671,7 +683,7 @@ def load_dataset_from_zarr(case_string_list, case_list_path, **kwargs):
     for icase, case_str in tqdm(enumerate(case_string_list), total=len(case_string_list), unit='files'):
 
         # gather time interval, etc..:505
-        
+
         case = load_case_list(case_list_path, case_str)
         TIME_SPAN = [datetime.datetime.strptime(t, '%Y%m%d-%H%M') for t in case['time_interval']]
         dt_str = f'{TIME_SPAN[0]:%Y%m%d_%H%M}-{TIME_SPAN[1]:%H%M}'
@@ -865,7 +877,8 @@ def one_hot_to_classes(cnn_pred, mask):
         cnt += 1
 
     return predicted_classes, predicted_probability
-                            
+
+
 def classes_to_one_hot(classes, mask):
     """Converts a one-hot-encodes ANN prediction into Cloudnet-like classes.
 
@@ -877,10 +890,10 @@ def classes_to_one_hot(classes, mask):
         predicted_classes (numpy.array): predicted values converted to Cloudnet classes
     """
     one_hot = []
-                            
+
     for iT, iR in product(range(classes.shape[0]), range(classes.shape[1])):
         if mask[iT, iR]: continue
-        one_hot.append(classes[iT, iR]) 
+        one_hot.append(classes[iT, iR])
 
     return np.array(one_hot)
 
@@ -914,41 +927,14 @@ def random_choice(xr_ds, rg_int, N=4, iclass=4, var='voodoo_classification'):
     icnt = 0
     indices = np.zeros((N, 2), dtype=np.int)
     nnearest = h.argnearest(xr_ds.ZSpec.rg.values, rg_int)
-                            
+
     while icnt < N:
         while True:
             idxts = int(np.random.randint(0, high=nts, size=1))
             idxrg = int(np.random.randint(0, high=nnearest, size=1))
-            if ~xr_ds.mask[idxts, idxrg] and xr_ds[var].values[idxts, idxrg] == iclass: 
+            if ~xr_ds.mask[idxts, idxrg] and xr_ds[var].values[idxts, idxrg] == iclass:
                 indices[icnt, :] = [idxts, idxrg]
                 icnt += 1
                 break
     return indices
-                            
-                            
-def calc_adLWP(liquid_mask, temperature, pressure, rg):
-
-    bt_lists, bt_mask = find_bases_tops(liquid_mask, rg)
-    adLWP = np.zeros(liquid_mask.shape[0])
-
-    for iT in range(liquid_mask.shape[0]):
-        
-        n_cloud_layers = len(bt_lists[iT]['idx_cb'])
-        if n_cloud_layers < 1: continue
-        Tclouds, Pclouds, RHclouds, RGclouds = [], [], [], []
-
-        lwc = 0
-        for iL in range(n_cloud_layers):
-            tmp_idx = np.arange(bt_lists[iT]['idx_cb'][iL], bt_lists[iT]['idx_ct'][iL], dtype=np.int)
-            if tmp_idx.size > 1:  # exclude single range gate clouds
-                
-                lwc += np.sum(mod_ad(temperature[iT, tmp_idx], pressure[iT, tmp_idx], rg[tmp_idx]))   # kg/m3
-                #print(f'range (iTime={iT}, iLayer={iL}) = {rg[tmp_idx]}')
-                #print(f'lwc = {lwc}')
-
-        # calculates adiabatic lwc
-        lwc = lwc * 1000   # kg/m3 --> g/m3
-        adLWP[iT] = np.sum(lwc)
-
-    return adLWP
 
