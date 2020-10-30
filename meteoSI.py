@@ -212,8 +212,7 @@ def adiab(i, T, P, RH, z):
     TCL = T[0]
     LWC = 0.0
 
-    for j in range(i):
-    #for j in range(1, i + 1):
+    for j in range(1, i + 1):
         deltaz = z[j] - z[j-1]
 
         #   Compute actual cloud temperature
@@ -268,16 +267,12 @@ def mod_ad(T_cloud, p_cloud, rh_cloud, z_cloud, fak=1.):
     # translated to Python from mod_ad.pro by mx.
 
     n_cloud_pixel = len(T_cloud)
-#    lwc = np.zeros(n_cloud_pixel - 1)
-#
-#    for jj in range(n_cloud_pixel - 1):
-#        thick = z_cloud[jj + 1] - z_cloud[jj]
-#        lwc[jj] = adiab(jj + 1, T_cloud, p_cloud, rh_cloud, z_cloud)
-#        lwc[jj] *= 1.239387 - 0.144779 * np.log(thick / fak)
+    lwc = np.zeros(n_cloud_pixel - 1)
 
-    thick = z_cloud[-1] - z_cloud[0]
-    lwc = -adiab(n_cloud_pixel, T_cloud, p_cloud, rh_cloud, z_cloud)
-    lwc *= (1.239387 - 0.144779 * np.log(thick / fak))
+    for jj in range(n_cloud_pixel - 1):
+        thick = z_cloud[jj + 1] - z_cloud[jj]
+        lwc[jj] = adiab(jj + 1, T_cloud, p_cloud, rh_cloud, z_cloud)
+        lwc[jj] *= (1.239387 - 0.144779 * np.log(thick / fak))
 
     return lwc
 
