@@ -4,6 +4,7 @@ data/*
 # include one file explicitely
 !data/20190801-20190801-20201017-174440__20201017-174440_weights_compressed.h5.nc
 !data/20190313-20190313-20201017-174440__20201017-174440_weights_compressed.h5.nc
+!plots/20190801-VOODOO_radar_lidar.png
 
 # exclude . stuff
 .ipynb_checkpoints*
@@ -11,6 +12,6 @@ data/*
 __pycache__*
 
 # exclude pngs
-plots/*
-plots/**/*
+plots*/*
+plots*/**/*
 

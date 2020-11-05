@@ -227,7 +227,7 @@ def adiab(i, T, P, RH, z):
         RWV = ABHUM(T[j], 1.0)
         WS = RWV/(R - RWV)
         DTPS = PSEUDO(T[j], WS)
-        TCL = TCL + DTPS * deltaz
+        TCL += DTPS * deltaz
 
         #   Compute adiabatic LWC
 
@@ -239,7 +239,6 @@ def adiab(i, T, P, RH, z):
 
         R = DENSITY(1.0, TCL, P[j])
         RWV = ABHUM(TCL, 1.0)
-
         WS = RWV / (R - RWV)
         L = VAPHET(TCL)
         LWC += R * Cp / L * ((Grav / Cp) - PSEUDO(TCL, WS)) * deltaz

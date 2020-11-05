@@ -40,6 +40,9 @@ cloudnetpy_category_bits = [
     'Insects are present and visible to the radar.'
 ]
 
+def get_subset(dt_list, mask):
+    return [dt for dt, msk in zip(dt_list, mask) if msk]
+
 
 def read_cmd_line_args(argv=None):
     """Command-line -> method call arg processing.
@@ -166,6 +169,7 @@ def get_cloud_base_from_liquid_mask(liq_mask, rg):
     Args:
         liq_mask:
         rg: range values
+
 
     Returns: cloud base height
 
@@ -938,3 +942,27 @@ def random_choice(xr_ds, rg_int, N=4, iclass=4, var='voodoo_classification'):
                 break
     return indices
 
+def calc_adLWP(liquid_mask, temperature, pressure, relhumidity, rg):
+
+    bt_lists, bt_mask = find_bases_tops(liquid_mask, rg)
+    adLWP = np.zeros(liquid_mask.shape[0])
+
+    for iT in range(liquid_mask.shape[0]):
+        
+        n_cloud_layers = len(bt_lists[iT]['idx_cb'])
+        if n_cloud_layers < 1: continue
+
+        lwc = 0
+        for iL in range(n_cloud_layers):
+            tmp_idx = np.arange(bt_lists[iT]['idx_cb'][iL], bt_lists[iT]['idx_ct'][iL], dtype=np.int)
+            if tmp_idx.size > 1:  # exclude single range gate clouds
+                # calculates adiabatic lwc
+                lwc += np.sum(mod_ad(temperature[iT, tmp_idx], pressure[iT, tmp_idx], relhumidity[iT, tmp_idx], rg[tmp_idx]))   # kg/m3
+
+        #adLWP[iT] = np.sum(lwc)  # kg/m3 --> g/m3
+        adLWP[iT] = lwc    # kg/m3 --> g/m3
+
+
+    return adLWP                            
+                            
+                            
